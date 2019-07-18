@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import classnames from 'classnames'
 import * as ApiClient from './api-client'
 import './app.css'
 
@@ -11,15 +12,30 @@ function List({ children }) {
 }
 
 export function ListItem({ movie }) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
-    <li className="movie-item">
+    <li
+      onClick={() => setExpanded(!expanded)}
+      className={classnames('movie-item', {
+        _is_expanded: expanded,
+      })}
+      role="button"
+    >
+      {movie.backdrop_path && <MovieImage path={movie.backdrop_path} alt={movie.title} />}
       <h3>{movie.title}</h3>
+      <div className="movie-item__content">
+        <p>{movie.overview}</p>
+        <span>
+          Rating: <strong>{movie.vote_average} / 10</strong> ({movie.vote_count} ratings)
+        </span>
+      </div>
     </li>
   )
 }
 
-function Image({ src, alt = '' }) {
-  return <img src={src} alt={alt} />
+function MovieImage({ path, alt = '' }) {
+  return <img src={`https://image.tmdb.org/t/p/w500/${path}`} alt={alt} />
 }
 
 export function App() {

@@ -16,8 +16,8 @@ function Loader() {
   return <div className="loader" aria-hidden="true" />
 }
 
-function Image({ path, alt = '' }) {
-  return <img src={path} alt={alt} />
+function MovieImage({ path, alt = '' }) {
+  return <img src={`https://image.tmdb.org/t/p/w500/${path}`} alt={alt} />
 }
 
 export function ListItem({ movie }) {
@@ -29,9 +29,7 @@ export function ListItem({ movie }) {
       onClick={() => setExpanded(!expanded)}
       role="button"
     >
-      {movie.backdrop_path && (
-        <Image path={`https://image.tmdb.org/t/p/w500/${movie.backdrop_path}`} alt={movie.title} />
-      )}
+      {movie.backdrop_path && <MovieImage path={movie.backdrop_path} alt={movie.title} />}
       <h3>{movie.title}</h3>
       <div className="movie-item__content">
         <p>{movie.overview}</p>
@@ -43,14 +41,66 @@ export function ListItem({ movie }) {
   )
 }
 
-function sortMovies(movies, key, direction = 'desc') {
+function InputField({ onChange, ...rest }) {
+  const [value, setValue] = useState(rest.value)
+
+  useEffect(
+    () => {
+      onChange(value)
+    },
+    [value]
+  )
+
+  return <input {...rest} onChange={(e) => setValue(e.target.value)} />
+}
+
+function Sorting({ onChange, ...rest }) {
+  const [value, setValue] = useState(rest.value)
+
+  useEffect(
+    () => {
+      onChange(value)
+    },
+    [value]
+  )
+
+  return (
+    <select
+      {...rest}
+      onChange={(e) => setValue(e.target.value)}
+    >
+      <option value="none">Select sorting</option>
+      <option value="popularity.desc">Most popular</option>
+      <option value="popularity.asc">Least popular</option>
+      <option value="new.desc">Newest</option>
+      <option value="new.asc">Oldest</option>
+    </select>
+  )
+}
+
+function sortArray(arr, key, direction = 'desc') {
   if (direction === 'desc') {
-    return movies.sort((a, b) => (a[key] < b[key] ? -1 : 1))
+    return arr.sort((a, b) => (a[key] < b[key] ? -1 : 1))
   }
   if (direction === 'asc') {
-    return movies.sort((a, b) => (a[key] < b[key] ? 1 : -1))
+    return arr.sort((a, b) => (a[key] < b[key] ? 1 : -1))
   }
-  return movies
+  return arr
+}
+
+function sortMovies(movies, sortBy) {
+  switch (sortBy) {
+    case 'popularity.desc':
+      return sortArray(movies, 'vote_average', 'desc')
+    case 'popularity.asc':
+      return sortArray(movies, 'vote_average', 'asc')
+    case 'new.desc':
+      return sortArray(movies, 'release_date', 'desc')
+    case 'new.asc':
+      return sortArray(movies, 'release_date', 'asc')
+    default:
+      return movies
+  }
 }
 
 export function App() {
@@ -103,26 +153,10 @@ export function App() {
   useEffect(
     () => {
       setIsLoading(true)
-      let sortedMovies = []
-
-      switch (sortBy) {
-        case 'popularity.desc':
-          sortedMovies = sortMovies(movies, 'vote_average', 'desc')
-          break
-        case 'popularity.asc':
-          sortedMovies = sortMovies(movies, 'vote_average', 'asc')
-          break
-        case 'new.desc':
-          sortedMovies = sortMovies(movies, 'release_date', 'desc')
-          break
-        case 'new.asc':
-          sortedMovies = sortMovies(movies, 'release_date', 'asc')
-          break
-        default:
-          sortedMovies = movies
-      }
-
       setMovies([])
+
+      const sortedMovies = sortMovies(movies, sortBy)
+
       setMovies(sortedMovies)
       setIsLoading(false)
     },
@@ -132,11 +166,13 @@ export function App() {
   return (
     <Container>
       <h1>My Movies</h1>
-      <input
+      <InputField
         type="search"
         className="movie-search-input"
         placeholder="Search for movies"
-        onChange={(e) => setQuery(e.target.value)}
+        name="query"
+        value={query}
+        onChange={(value) => setQuery(value)}
       />
       {isLoading ? (
         <Loader />
@@ -148,19 +184,7 @@ export function App() {
                 <span className="movie-search-label">
                   Search results for: <strong>"{debouncedQuery}"</strong>
                 </span>
-
-                <select
-                  name="movies-sort-by"
-                  className="movies-sort-by"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="none">Select sorting</option>
-                  <option value="popularity.desc">Most popular</option>
-                  <option value="popularity.asc">Least popular</option>
-                  <option value="new.desc">Newest</option>
-                  <option value="new.asc">Oldest</option>
-                </select>
+                <Sorting value={sortBy} onChange={(value) => setSortBy(value)} />
               </div>
             )}
           {movies.length === 0 && (
