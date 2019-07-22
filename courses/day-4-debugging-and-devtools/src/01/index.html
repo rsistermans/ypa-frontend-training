@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+    <title>Debugging exercise</title>
+    <style>
+        label {
+            display: block;
+        }
+        .calculator__output {
+            width: 120px;
+        }
+        .calculator__input--small {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Debugging exercise 1: make the numbers add up</h1>
+<form class="calculator" novalidate>
+    <label>Addition</label>
+    <input class="calculator__input calculator__input--small" /> +
+    <input class="calculator__input calculator__input--small" />
+    <br/><br/>
+    <button type="submit">Calculate</button>
+    <br/><br/>
+    <label>Output</label>
+    <input class="calculator__output" readonly />
+</form>
+
+<script src="script.js"></script>
+</body>
+</html>
